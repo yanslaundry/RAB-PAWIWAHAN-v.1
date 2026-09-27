@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAB Pawiwahan Bali — Professional Dashboard v4.1</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        bali: {
+                            gold: '#D4AF37',
+                            amber: '#B45309',
+                            red: '#991B1B',
+                            dark: '#0F172A',
+                            cream: '#FEF3C7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; font-size: 11pt; }
+            .shadow-lg, .shadow-md, .shadow-sm, .shadow-2xl { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .table-row-hover:hover {
+            background-color: #fefce8;
+        }
+        .modal-animate-in {
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .dashboard-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        .dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,23,42,.08); }
+        .metric-value { letter-spacing: -0.035em; }
+        .progress-track { height: 8px; border-radius: 999px; background:#e2e8f0; overflow:hidden; }
+        .progress-fill { height:100%; border-radius:999px; transition:width .35s ease; }
+        .section-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:#94a3b8; }
+        .dashboard-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
+        .dashboard-span-8 { grid-column:span 8 / span 8; }
+        .dashboard-span-4 { grid-column:span 4 / span 4; }
+        .dashboard-span-6 { grid-column:span 6 / span 6; }
+        .mini-stat { background:linear-gradient(135deg,#fff,#f8fafc); border:1px solid #e2e8f0; border-radius:16px; padding:14px; }
+        .health-ring { width:74px;height:74px;border-radius:50%;display:grid;place-items:center;position:relative; }
+        .health-ring::after { content:""; position:absolute; inset:7px; background:white; border-radius:50%; }
+        .health-ring > span { position:relative; z-index:1; font-weight:900; font-size:14px; }
+        .empty-small { padding:24px; text-align:center; color:#94a3b8; font-size:12px; }
+        
+        .category-summary-card { cursor:pointer; }
+        .category-summary-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(15,23,42,.08); border-color:#fbbf24; }
+        .v3-badge { background:linear-gradient(135deg,#fff7ed,#fffbeb); color:#92400e; border:1px solid #fde68a; }
+
+        @media (max-width: 1024px) {
+            .dashboard-span-8,.dashboard-span-4,.dashboard-span-6 { grid-column:span 12 / span 12; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[200] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ========================================================== -->
+    <!-- AUTH / LOGIN OVERLAY MODAL                                -->
+    <!-- ========================================================== -->
+    <div id="auth-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl modal-animate-in border border-amber-500/20">
+            <!-- Header Image Cover for Auth Modal -->
+            <div class="relative h-48 bg-slate-900 overflow-hidden flex items-center justify-center">
+                <img id="auth-banner-img" src="Gemini_Generated_Image_g6wvjpg6wvjpg6wv.jfif" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=1000&auto=format&fit=crop';" alt="Sampul RAB Pawiwahan Bali" class="w-full h-full object-cover opacity-80 hover:scale-105 transition-transform duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                <div class="absolute bottom-4 left-6 right-6 text-white">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/30 text-amber-300 border border-amber-400/30 backdrop-blur-sm mb-1">
+                        <i class="fa-solid fa-shield-halved"></i> Keamanan RAB Bali
+                    </span>
+                    <h2 class="text-2xl font-black tracking-tight text-amber-200" id="auth-modal-title">Akses RAB Pawiwahan</h2>
+                    <p class="text-xs text-slate-300 mt-0.5" id="auth-modal-subtitle">Masukkan password untuk melanjutkan</p>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <!-- Status Indicator -->
+                <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-2xl border border-amber-200/70 text-amber-900 text-xs font-semibold">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+                        <i class="fa-solid fa-lock" id="auth-status-icon"></i>
+                    </div>
+                    <div id="auth-status-msg">
+                        Silakan masukkan password yang pernah dibuat untuk membuka aplikasi.
+                    </div>
+                </div>
+
+                <!-- Auth Form -->
+                <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                    <div id="field-setup-pass" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Buat Password Baru</label>
+                            <input type="password" id="input-new-pass" placeholder="Minimal 3 karakter" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Konfirmasi Password</label>
+                            <input type="password" id="input-confirm-pass" placeholder="Ulangi password baru" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        </div>
+                    </div>
+
+                    <div id="field-login-pass" class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password Aplikasi</label>
+                        <div class="relative">
+                            <input type="password" id="input-login-pass" placeholder="Masukkan password Anda" class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <button type="button" onclick="togglePasswordVisibility('input-login-pass', 'eye-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i class="fa-solid fa-eye" id="eye-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="auth-error-msg" class="text-xs font-bold text-rose-600 hidden flex items-center gap-1.5 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                        <i class="fa-solid fa-circle-exclamation"></i> <span id="auth-error-text">Password salah.</span>
+                    </div>
+
+                    <button type="submit" id="btn-auth-submit" class="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-key"></i> <span id="btn-auth-text">Masuk ke Aplikasi</span>
+                    </button>
+                </form>
+
+                <div class="pt-2 text-center text-[11px] text-slate-400 border-t border-slate-100 flex items-center justify-between">
+                    <span>RAB Pawiwahan Bali v4.1</span>
+                    <button type="button" onclick="openForgotPassModal()" class="text-amber-700 hover:underline font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-circle-question"></i> Lupa Password?
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white shadow-xl sticky top-0 z-30 no-print border-b border-amber-500/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            <!-- Brand & Visual Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg ring-2 ring-amber-300/40 overflow-hidden shrink-0">
+                    <!-- Custom SVG Crown/Candi Logo Graphic -->
+                    <svg class="w-7 h-7 text-amber-950" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15 8L21 9L16.5 13.5L18 19.5L12 16L6 19.5L7.5 13.5L3 9L9 8L12 2Z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight text-amber-200 flex items-center gap-2">
+                        <span>RAB Pawiwahan Bali</span>
+                        <span class="text-[10px] font-extrabold bg-amber-500/30 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">v4.1</span>
+                    </h1>
+                    <p class="text-xs text-slate-300 flex items-center gap-1 font-medium">
+                        <i class="fa-solid fa-location-dot text-amber-400"></i> Asahduren, Pekutatan, Jembrana
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Controls -->
+            <div class="flex items-center gap-2 flex-wrap text-xs sm:text-sm">
+                <button onclick="openCategoryModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-folder-plus text-amber-200"></i>
+                    <span>+ Kategori</span>
+                </button>
+                <button onclick="openItemModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-circle-plus text-emerald-200"></i>
+                    <span>+ Item Biaya</span>
+                </button>
+                <button onclick="openAppsScriptModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 px-3 py-2 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-code"></i>
+                    <span class="hidden sm:inline font-semibold">Google Script</span>
+                </button>
+                
+                <!-- Separate Password Button -->
+                <button onclick="openChangePassModal()" class="bg-slate-800 hover:bg-amber-950/60 text-amber-300 border border-amber-500/30 px-3 py-2 rounded-xl transition flex items-center gap-1.5 font-bold" title="Ubah Password">
+                    <i class="fa-solid fa-key"></i>
+                    <span class="hidden md:inline">Ganti Password</span>
+                </button>
+
+                <!-- Dedicated Logout Button -->
+                <button onclick="logoutApp()" class="bg-rose-950/80 hover:bg-rose-800 text-rose-200 border border-rose-500/40 px-3 py-2 rounded-xl transition flex items-center gap-1.5 font-bold shadow-sm" title="Keluar / Logout Aplikasi">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
+
+                <button onclick="window.print()" aria-label="Cetak atau simpan sebagai PDF" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl transition flex items-center gap-1.5" title="Cetak / Download PDF">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero / Cover Image Banner Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full no-print">
+        <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 bg-slate-900 group min-h-[200px]">
+            <!-- Visual Logo & Banner Image -->
+            <img id="main-hero-banner" src="Gemini_Generated_Image_g6wvjpg6wvjpg6wv.jfif" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=1200&auto=format&fit=crop';" alt="Sampul Utama RAB Pawiwahan Bali" class="w-full h-56 sm:h-72 lg:h-80 object-cover opacity-85 group-hover:scale-105 transition-transform duration-1000 ease-out">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+            
+            <div class="absolute bottom-0 inset-x-0 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
+                <div class="space-y-1">
+                    <div class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs px-3 py-1 rounded-full font-bold backdrop-blur-md">
+                        <i class="fa-solid fa-gem text-amber-400"></i> Sampul & Detail Acara Adat Bali
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-black text-amber-100 tracking-tight drop-shadow-md">Pawiwahan Adat Bali</h2>
+                    <p class="text-xs sm:text-sm text-slate-200 flex items-center gap-2 font-medium drop-shadow">
+                        <i class="fa-solid fa-map-pin text-rose-400"></i> Banjar Asahduren, Pekutatan, Jembrana, Bali
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="openWeddingInfoModal()" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Info Acara
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+        <!-- Wedding Details Banner Card -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full font-semibold border border-amber-200/80 mb-2">
+                    <i class="fa-solid fa-gem text-amber-600"></i> Anggaran Pernikahan Adat Bali <span class="v3-badge px-2 py-0.5 rounded-full text-[9px] font-extrabold">PRO v4.1</span>
+                </div>
+                <h2 id="disp-title" class="text-2xl font-black text-slate-800 tracking-tight">Pawiwahan Bali</h2>
+                <p id="disp-location" class="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-map-pin text-rose-500"></i> Banjar Asahduren, Desa Asahduren, Pekutatan, Jembrana
+                </p>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                <div class="text-left md:text-right">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Tanggal Acara Utama</div>
+                    <div id="disp-date" class="text-sm font-bold text-slate-700 flex items-center gap-1 md:justify-end">
+                        <i class="fa-regular fa-calendar-check text-amber-600"></i> -
+                    </div>
+                </div>
+                <button onclick="openWeddingInfoModal()" class="ml-auto md:ml-0 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition text-xs font-semibold flex items-center gap-1.5 border border-slate-200">
+                    <i class="fa-solid fa-pen-to-square text-slate-500"></i> Ubah Info
+                </button>
+            </div>
+        </div>
+
+        <!-- Financial Summary Dashboard -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <!-- Modal Awal (Dana Tersedia) -->
+            <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5 shadow-sm relative overflow-hidden transition hover:shadow-md">
+                <div class="absolute right-3 top-3 w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold backdrop-blur-sm">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-100">Modal Awal / Dana</span>
+                <div id="sum-budget" class="text-2xl font-black text-white mt-1">Rp 0</div>
+                <button onclick="openBudgetModal()" class="mt-2 text-[11px] bg-white/20 hover:bg-white/30 text-white font-bold px-2.5 py-1 rounded-lg transition inline-flex items-center gap-1">
+                    <i class="fa-solid fa-pen-to-square"></i> Set Modal Awal
+                </button>
+            </div>
+
+            <!-- Total Realisasi (Riil) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition hover:border-blue-300">
+                <div class="absolute right-3 top-3 w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Realisasi (Riil)</span>
+                <div id="sum-actual" class="text-2xl font-black text-blue-700 mt-1">Rp 0</div>
+                <div class="flex items-center justify-between mt-1 text-xs">
+                    <span id="sum-variance" class="font-semibold text-slate-500">Selisih: Rp 0</span>
+                    <span class="text-[10px] text-slate-400">Est: <span id="sum-estimated" class="font-bold text-slate-600">Rp 0</span></span>
+                </div>
+            </div>
+
+            <!-- Total Terbayar (Cash Out) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition hover:border-purple-300">
+                <div class="absolute right-3 top-3 w-9 h-9 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 font-bold">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Terbayar (Uang Keluar)</span>
+                <div id="sum-paid" class="text-xl font-black text-purple-700 mt-1">Rp 0</div>
+                <p id="sum-unpaid-sub" class="text-xs font-semibold text-rose-600 mt-0.5">Sisa Tagihan: Rp 0</p>
+            </div>
+
+            <!-- Sisa Saldo Kas Real -->
+            <div id="card-remaining-cash" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition">
+                <div id="icon-remaining-cash" class="absolute right-3 top-3 w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 font-bold">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sisa Kas Real (Di Tangan)</span>
+                <div id="sum-remaining-cash" class="text-2xl font-black text-emerald-600 mt-1">Rp 0</div>
+                <p id="sub-remaining-cash" class="text-xs font-medium mt-1 text-emerald-700">Modal Awal - Uang Terbayar</p>
+            </div>
+
+            <!-- Proyeksi Sisa Akhir Saldo -->
+            <div id="card-remaining-balance" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition">
+                <div id="icon-remaining-balance" class="absolute right-3 top-3 w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Proyeksi Sisa Saldo Akhir</span>
+                <div id="sum-remaining" class="text-2xl font-black text-indigo-600 mt-1">Rp 0</div>
+                <p id="sub-remaining" class="text-xs font-medium mt-1 text-indigo-700">Modal Awal - Total Riil</p>
+            </div>
+        </div>
+
+        <!-- Management Dashboard -->
+        <section class="dashboard-grid no-print" aria-label="Dashboard RAB">
+            <div class="dashboard-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm dashboard-card p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <div class="section-label">Ringkasan Keuangan</div>
+                        <h3 class="text-base font-extrabold text-slate-800 mt-1">Kesehatan Anggaran</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Pantau pemakaian dana, komitmen pembayaran, dan potensi defisit.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="autosave-indicator" class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <i class="fa-solid fa-cloud-check mr-1"></i> Tersimpan lokal
+                        </span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="mini-stat">
+                        <div class="section-label">Pemakaian Anggaran</div>
+                        <div id="adv-budget-percent" class="metric-value text-xl font-black text-slate-800 mt-1">0%</div>
+                        <div class="progress-track mt-2"><div id="adv-budget-progress" class="progress-fill bg-amber-500" style="width:0%"></div></div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="section-label">Belum Terbayar</div>
+                        <div id="adv-unpaid" class="metric-value text-xl font-black text-rose-600 mt-1">Rp 0</div>
+                        <div id="adv-unpaid-items" class="text-[10px] text-slate-400 mt-1">0 item</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="section-label">Penghematan</div>
+                        <div id="adv-saving" class="metric-value text-xl font-black text-emerald-600 mt-1">Rp 0</div>
+                        <div id="adv-saving-label" class="text-[10px] text-slate-400 mt-1">vs estimasi</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="section-label">Status RAB</div>
+                        <div id="adv-health" class="text-xl font-black text-emerald-600 mt-1">AMAN</div>
+                        <div id="adv-health-label" class="text-[10px] text-slate-400 mt-1">Dalam batas anggaran</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-span-4 bg-slate-950 rounded-2xl shadow-sm dashboard-card p-5 text-white overflow-hidden relative">
+                <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-amber-500/10"></div>
+                <div class="section-label !text-slate-400">Komposisi Pembayaran</div>
+                <h3 class="text-base font-extrabold text-amber-100 mt-1">Progress Pelunasan</h3>
+                <div class="flex items-center gap-4 mt-4">
+                    <div id="payment-ring" class="health-ring" style="background:conic-gradient(#10b981 0deg,#334155 0deg);">
+                        <span id="payment-percent">0%</span>
+                    </div>
+                    <div class="space-y-2 text-xs flex-1">
+                        <div class="flex justify-between"><span class="text-slate-400">Terbayar</span><b id="adv-paid" class="text-emerald-300">Rp 0</b></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Sisa tagihan</span><b id="adv-bill" class="text-rose-300">Rp 0</b></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Item lunas</span><b id="adv-paid-items">0</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm dashboard-card p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <div class="section-label">Prioritas Pembayaran</div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Tagihan yang Masih Terbuka</h3>
+                    </div>
+                    <span id="open-items-count" class="text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 px-2 py-1 rounded-full">0 item</span>
+                </div>
+                <div id="priority-list" class="space-y-2"></div>
+            </div>
+
+            <div class="dashboard-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm dashboard-card p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <div class="section-label">Distribusi Anggaran</div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Kategori Terbesar</h3>
+                    </div>
+                    <span id="category-count" class="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-full">0 kategori</span>
+                </div>
+                <div id="category-breakdown" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- Controls Toolbar -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 no-print">
+            <div class="flex items-center gap-2 w-full md:w-auto flex-1 max-w-md">
+                <div class="relative w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-input" onkeyup="filterItems()" placeholder="Cari item, banten, MUA, catering..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm">
+                </div>
+                <select id="status-filter" onchange="filterItems()" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm font-medium">
+                    <option value="ALL">Semua Status</option>
+                    <option value="LUNAS">Lunas</option>
+                    <option value="DP">DP</option>
+                    <option value="BELUM">Belum Dibayar</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                <button onclick="confirmLoadSample()" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i> Muat Template Jembrana
+                </button>
+                <button onclick="confirmClearAll()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-trash-can"></i> Kosongkan
+                </button>
+                <button onclick="exportJSON()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-download text-slate-300"></i> Ekspor
+                </button>
+                <label class="text-xs bg-slate-800 hover:bg-slate-700 text-white font-semibold px-3.5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-upload text-slate-300"></i> Impor
+                    <input type="file" id="import-file" accept=".json" onchange="importJSON(event)" class="hidden">
+                </label>
+            </div>
+        </div>
+
+        <!-- Ringkasan Kategori Biaya -->
+        <section class="mb-6">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-layer-group text-amber-600"></i> Kategori Biaya</h2>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Pilih kategori untuk melihat rincian pengeluaran.</p>
+                </div>
+                <button onclick="openCategoryModal()" class="no-print bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah Kategori</button>
+            </div>
+            <div id="category-summary-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+        </section>
+
+        <!-- Dynamic Category Containers -->
+        <div id="categories-container" class="space-y-6">
+            <!-- JavaScript Loaded Content -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-1">
+            <p class="font-bold text-slate-700">RAB Pernikahan Adat Bali - Pekutatan, Jembrana</p>
+            <p class="flex items-center justify-center gap-2"><span>Professional Dashboard v4.1</span><span class="text-slate-300">•</span><span>Sistem Proteksi Akses & Fitur Lengkap</span></p>
+        </div>
+    </footer>
+
+    <!-- MODAL: Set Modal Awal -->
+    <div id="modal-budget" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Set Modal Awal / Dana Tersedia</h3>
+                        <p class="text-[11px] text-slate-400">Total tabungan / anggaran yang disiapkan</p>
+                    </div>
+                </div>
+                <button onclick="closeBudgetModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveBudget(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nominal Dana Tersedia (Rp)</label>
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">Rp</span>
+                        <input type="number" id="input-budget-val" min="0" step="100000" required placeholder="50000000" class="w-full pl-11 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-extrabold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Pintasan Cepat Modal:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="setQuickBudget(25000000)" class="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 border border-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition">25 Juta</button>
+                        <button type="button" onclick="setQuickBudget(50000000)" class="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 border border-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition">50 Juta</button>
+                        <button type="button" onclick="setQuickBudget(75000000)" class="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 border border-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition">75 Juta</button>
+                        <button type="button" onclick="setQuickBudget(100000000)" class="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 border border-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition">100 Juta</button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeBudgetModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Modal Awal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Tambah / Edit Kategori -->
+    <div id="modal-category" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        <i id="cat-icon-preview-i" class="fa-solid fa-folder-plus"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-cat-title" class="text-base font-bold text-slate-800">Tambah Kategori Baru</h3>
+                        <p class="text-[11px] text-slate-400">Kelompokkan pengeluaran acara</p>
+                    </div>
+                </div>
+                <button onclick="closeCategoryModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveCategory(event)" class="space-y-4">
+                <input type="hidden" id="cat-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Kategori</label>
+                    <input type="text" id="cat-name" required placeholder="Contoh: Konsumsi & Catering" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Pilih Ikon</label>
+                    <select id="cat-icon" onchange="updateCatIconPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                        <option value="fa-hands-praying"> Upacara & Banten</option>
+                        <option value="fa-shirt"> Payas & Rias (MUA)</option>
+                        <option value="fa-utensils"> Konsumsi & Catering</option>
+                        <option value="fa-store"> Tenda & Dekorasi</option>
+                        <option value="fa-music"> Gong & Hiburan</option>
+                        <option value="fa-camera"> Foto & Video</option>
+                        <option value="fa-shield-halved"> Pecalang & Keamanan</option>
+                        <option value="fa-car"> Transportasi & Logistik</option>
+                        <option value="fa-gift"> Souvenir & Undangan</option>
+                        <option value="fa-coins"> Biaya Tak Terduga</option>
+                        <option value="fa-ellipsis"> Lain-lain / Keperluan Tambahan</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeCategoryModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Kategori
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Item Biaya -->
+    <div id="modal-item" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4 my-8">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-circle-plus"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-item-title" class="text-base font-bold text-slate-800">Tambah Item Biaya Baru</h3>
+                        <p class="text-[11px] text-slate-400">Rincian komponen kebutuhan anggaran</p>
+                    </div>
+                </div>
+                <button onclick="closeItemModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveItem(event)" class="space-y-4">
+                <input type="hidden" id="item-id">
+                <input type="hidden" id="item-cat-id">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Kategori Biaya</label>
+                    <select id="item-category-select" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Item / Pengeluaran</label>
+                    <input type="text" id="item-name" required placeholder="Contoh: Banten Pawiwahan Utama" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Jumlah (Qty)</label>
+                        <input type="number" id="item-qty" min="0.1" step="any" required value="1" oninput="calcModalTotals()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Satuan</label>
+                        <input type="text" id="item-unit" required placeholder="Paket / Porsi / Pasang" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Harga Estimasi (Rp)</label>
+                        <input type="number" id="item-price-est" min="0" step="1000" required placeholder="0" oninput="calcModalTotals()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Harga Riil / Acu (Rp)</label>
+                        <input type="number" id="item-price-act" min="0" step="1000" required placeholder="0" oninput="calcModalTotals()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono">
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/60 text-xs space-y-2">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Tot. Est</span>
+                            <span id="prev-est" class="font-bold text-slate-800 font-mono">Rp 0</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Tot. Riil</span>
+                            <span id="prev-act" class="font-bold text-blue-700 font-mono">Rp 0</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Selisih</span>
+                            <span id="prev-diff" class="font-bold text-emerald-600 font-mono">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Status Pembayaran</label>
+                        <select id="item-status" onchange="autoFillPaymentStatus()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                            <option value="BELUM">Belum Dibayar</option>
+                            <option value="DP">DP (Uang Muka)</option>
+                            <option value="LUNAS">Lunas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Jumlah Terbayar (Rp)</label>
+                        <input type="number" id="item-paid" min="0" step="1000" placeholder="0" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase mr-1">Pintasan:</span>
+                    <button type="button" onclick="setQuickPayment('LUNAS')" class="text-[11px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg font-bold transition">Set Lunas</button>
+                    <button type="button" onclick="setQuickPayment('DP50')" class="text-[11px] bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg font-bold transition">DP 50%</button>
+                    <button type="button" onclick="setQuickPayment('BELUM')" class="text-[11px] bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg font-bold transition">Set Belum</button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Catatan / Keterangan Tambahan</label>
+                    <input type="text" id="item-notes" placeholder="Contoh: PJ Pak Made, DP transfer via BCA" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeItemModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Item Biaya
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Ubah Informasi Acara -->
+    <div id="modal-wedding-info" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Ubah Info Acara Pawiwahan</h3>
+                        <p class="text-[11px] text-slate-400">Judul, lokasi, dan tanggal resepsi</p>
+                    </div>
+                </div>
+                <button onclick="closeWeddingInfoModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveWeddingInfo(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Judul Acara / Mempelai</label>
+                    <input type="text" id="info-title" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Lokasi Acara</label>
+                    <input type="text" id="info-location" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Acara</label>
+                    <input type="text" id="info-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeWeddingInfoModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Info
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL KHUSUS: Ganti Password (TERPISAH) -->
+    <div id="modal-change-pass" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[120] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Ganti Password Aplikasi</h3>
+                        <p class="text-[11px] text-slate-400">Pembaruan kata sandi khusus</p>
+                    </div>
+                </div>
+                <button onclick="closeChangePassModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveNewPassword(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password Lama</label>
+                    <input type="password" id="input-old-pass" required placeholder="Masukkan password saat ini" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password Baru</label>
+                    <input type="password" id="input-new-pass-modal" required placeholder="Masukkan password baru" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Konfirmasi Password Baru</label>
+                    <input type="password" id="input-confirm-pass-modal" required placeholder="Ulangi password baru" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeChangePassModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock-keyhole"></i> Ganti Password Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL KHUSUS: Lupa Password & Pemulihan Akses -->
+    <div id="modal-forgot-pass" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[130] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-life-ring"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Pemulihan Password</h3>
+                        <p class="text-[11px] text-slate-400">Reset kata sandi aplikasi</p>
+                    </div>
+                </div>
+                <button onclick="closeForgotPassModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="text-xs text-slate-600 space-y-3">
+                <p class="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl leading-relaxed">
+                    Jika Anda lupa password, Anda dapat mereset keamanan password untuk membuat password baru tanpa menghapus data RAB pernikahan Anda.
+                </p>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ketik kata "RESET" untuk mengonfirmasi:</label>
+                    <input type="text" id="input-reset-confirm" placeholder="Ketik RESET" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-center tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                <button type="button" onclick="closeForgotPassModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                <button type="button" onclick="executePasswordReset()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Dialog Konfirmasi -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-lg shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 id="confirm-title" class="text-base font-bold text-slate-800">Konfirmasi tindakan</h3>
+                    <p id="confirm-msg" class="text-xs text-slate-500 mt-0.5">Apakah Anda yakin?</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                <button onclick="closeConfirmModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Batal</button>
+                <button onclick="closeConfirmModal(true)" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Apps Script Integration -->
+    <div id="modal-apps-script" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl modal-animate-in border border-slate-100 space-y-4 my-8">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Integrasi Google Apps Script (.gs)</h3>
+                        <p class="text-[11px] text-slate-400">Hubungkan RAB ini secara langsung dengan Google Sheets</p>
+                    </div>
+                </div>
+                <button onclick="closeAppsScriptModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">URL Web App Google Script</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                        <button onclick="saveScriptUrl()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition">Simpan URL</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button onclick="syncToGoogleSheets()" class="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Kirim ke Sheets
+                    </button>
+                    <button onclick="syncFromGoogleSheets()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Ambil dari Sheets
+                    </button>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Kode Code.gs (Google Sheets Script)</label>
+                        <button onclick="copyAppsScriptCode()" class="text-[11px] text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1">
+                            <i class="fa-regular fa-copy"></i> Salin Kode
+                        </button>
+                    </div>
+                    <pre id="gs-code-content" class="bg-slate-900 text-amber-300 p-3.5 rounded-xl text-[11px] font-mono overflow-x-auto custom-scrollbar max-h-48 border border-slate-800"><code>function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getRange(1, 1).getValue();
+  return ContentService.createTextOutput(data || "{}").setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var contents = e.postData.contents;
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    sheet.getRange(1, 1).setValue(contents);
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end border-t border-slate-100">
+                <button onclick="closeAppsScriptModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const EMPTY_BALI_TEMPLATE = {
+            weddingInfo: {
+                title: "Pawiwahan Bali",
+                location: "Banjar Asahduren, Desa Asahduren, Pekutatan, Jembrana, Bali",
+                date: "24 Oktober 2026"
+            },
+            budget: 50000000,
+            categories: [
+                { id: "cat-upacara", name: "Upacara & Banten Pawiwahan", icon: "fa-hands-praying", items: [] },
+                { id: "cat-payas", name: "Payas, Busana & Rias (MUA)", icon: "fa-shirt", items: [] },
+                { id: "cat-konsumsi", name: "Konsumsi, Megibung & Catering", icon: "fa-utensils", items: [] },
+                { id: "cat-dekorasi", name: "Tenda, Dekorasi & Penjor", icon: "fa-store", items: [] },
+                { id: "cat-hiburan", name: "Sekaa Gong & Pecalang Banjar", icon: "fa-music", items: [] },
+                { id: "cat-dokumentasi", name: "Foto & Video Dokumentasi", icon: "fa-camera", items: [] },
+                { id: "cat-lainnya", name: "Lain-lain / Keperluan Tambahan", icon: "fa-ellipsis", items: [] }
+            ]
+        };
+
+        const PRESET_SAMPLE_DATA = {
+            weddingInfo: {
+                title: "Pawiwahan: Made & Ni Putu",
+                location: "Banjar Asahduren, Desa Asahduren, Pekutatan, Jembrana, Bali",
+                date: "24 Oktober 2026"
+            },
+            budget: 50000000,
+            categories: [
+                {
+                    id: "cat-upacara",
+                    name: "Upacara & Banten Pawiwahan",
+                    icon: "fa-hands-praying",
+                    items: [
+                        { id: "item-1", name: "Banten Utama Pawiwahan Utamaning Utama", qty: 1, unit: "Paket", priceEst: 15000000, priceAct: 15000000, paidAmount: 5000000, status: "DP", notes: "Serati Banten Asahduren" },
+                        { id: "item-2", name: "Banten Pejati, Canang & Caru", qty: 1, unit: "Set", priceEst: 3500000, priceAct: 3200000, paidAmount: 3200000, status: "LUNAS", notes: "Griya Pekutatan" }
+                    ]
+                },
+                {
+                    id: "cat-payas",
+                    name: "Payas, Busana & Rias (MUA)",
+                    icon: "fa-shirt",
+                    items: [
+                        { id: "item-3", name: "Payas Agung Bali Utama (Resepsi & Akad)", qty: 1, unit: "Pasang", priceEst: 7500000, priceAct: 7000000, paidAmount: 7000000, status: "LUNAS", notes: "MUA Denpasar / Negara" }
+                    ]
+                },
+                {
+                    id: "cat-konsumsi",
+                    name: "Konsumsi, Megibung & Catering",
+                    icon: "fa-utensils",
+                    items: [
+                        { id: "item-4", name: "Nasi Kotak / Megibung Sesuai Banjar", qty: 300, unit: "Porsi", priceEst: 30000, priceAct: 28000, paidAmount: 4000000, status: "DP", notes: "PJ: Pak Made Asahduren" }
+                    ]
+                }
+            ]
+        };
+
+        let appState = JSON.parse(localStorage.getItem("RAB_BALI_STATE")) || JSON.parse(JSON.stringify(EMPTY_BALI_TEMPLATE));
+        let scriptUrl = localStorage.getItem("RAB_BALI_SCRIPT_URL") || "";
+        let pendingConfirmCallback = null;
+
+        // AUTH & LOGOUT SYSTEM LOGIC
+        function initAuthSystem() {
+            const storedPassword = localStorage.getItem("RAB_BALI_PASSWORD");
+            const isAuthenticated = sessionStorage.getItem("RAB_BALI_AUTH") === "true";
+
+            const authOverlay = document.getElementById("auth-overlay");
+            const setupField = document.getElementById("field-setup-pass");
+            const loginField = document.getElementById("field-login-pass");
+            const modalTitle = document.getElementById("auth-modal-title");
+            const modalSubtitle = document.getElementById("auth-modal-subtitle");
+            const statusMsg = document.getElementById("auth-status-msg");
+            const statusIcon = document.getElementById("auth-status-icon");
+            const submitBtnText = document.getElementById("btn-auth-text");
+
+            if (!storedPassword) {
+                authOverlay.classList.remove("hidden");
+                setupField.classList.remove("hidden");
+                loginField.classList.add("hidden");
+                modalTitle.innerText = "Buat Password Pertama";
+                modalSubtitle.innerText = "Buat sandi pengaman untuk RAB Pawiwahan Anda";
+                statusMsg.innerText = "Aplikasi belum memiliki password. Silakan buat password pertama Anda.";
+                statusIcon.className = "fa-solid fa-user-shield";
+                submitBtnText.innerText = "Simpan & Buat Password";
+            } else if (!isAuthenticated) {
+                authOverlay.classList.remove("hidden");
+                setupField.classList.add("hidden");
+                loginField.classList.remove("hidden");
+                modalTitle.innerText = "Akses RAB Pawiwahan";
+                modalSubtitle.innerText = "Masukkan password untuk melanjutkan";
+                statusMsg.innerText = "Aplikasi terkunci. Masukkan password yang telah dikonfigurasi.";
+                statusIcon.className = "fa-solid fa-lock";
+                submitBtnText.innerText = "Buka Kunci Aplikasi";
+            } else {
+                authOverlay.classList.add("hidden");
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const storedPassword = localStorage.getItem("RAB_BALI_PASSWORD");
+            const errBox = document.getElementById("auth-error-msg");
+            const errText = document.getElementById("auth-error-text");
+
+            errBox.classList.add("hidden");
+
+            if (!storedPassword) {
+                const newPass = document.getElementById("input-new-pass").value;
+                const confirmPass = document.getElementById("input-confirm-pass").value;
+
+                if (!newPass || newPass.trim().length < 3) {
+                    errText.innerText = "Password minimal 3 karakter.";
+                    errBox.classList.remove("hidden");
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    errText.innerText = "Konfirmasi password tidak cocok.";
+                    errBox.classList.remove("hidden");
+                    return;
+                }
+
+                localStorage.setItem("RAB_BALI_PASSWORD", newPass);
+                sessionStorage.setItem("RAB_BALI_AUTH", "true");
+                document.getElementById("auth-overlay").classList.add("hidden");
+                showToast("Password berhasil dibuat! Akses terbuka.");
+            } else {
+                const inputPass = document.getElementById("input-login-pass").value;
+                if (inputPass === storedPassword) {
+                    sessionStorage.setItem("RAB_BALI_AUTH", "true");
+                    document.getElementById("auth-overlay").classList.add("hidden");
+                    showToast("Selamat datang kembali!");
+                } else {
+                    errText.innerText = "Password yang Anda masukkan salah.";
+                    errBox.classList.remove("hidden");
+                }
+            }
+        }
+
+        function logoutApp() {
+            openConfirmModal("Logout Aplikasi", "Apakah Anda yakin ingin logout? Kunci keamanan aplikasi akan diaktifkan kembali.", function() {
+                sessionStorage.removeItem("RAB_BALI_AUTH");
+                const loginInput = document.getElementById("input-login-pass");
+                if (loginInput) loginInput.value = "";
+                initAuthSystem();
+                showToast("Anda telah berhasil logout.", "info");
+            });
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.className = "fa-solid fa-eye-slash";
+            } else {
+                input.type = "password";
+                icon.className = "fa-solid fa-eye";
+            }
+        }
+
+        // SEPARATE PASSWORD CHANGE MODAL LOGIC
+        function openChangePassModal() {
+            document.getElementById('input-old-pass').value = "";
+            document.getElementById('input-new-pass-modal').value = "";
+            document.getElementById('input-confirm-pass-modal').value = "";
+            document.getElementById('modal-change-pass').classList.remove('hidden');
+        }
+
+        function closeChangePassModal() {
+            document.getElementById('modal-change-pass').classList.add('hidden');
+        }
+
+        function saveNewPassword(e) {
+            e.preventDefault();
+            const oldP = document.getElementById('input-old-pass').value;
+            const newP = document.getElementById('input-new-pass-modal').value;
+            const confirmP = document.getElementById('input-confirm-pass-modal').value;
+            const currentP = localStorage.getItem("RAB_BALI_PASSWORD");
+
+            if (oldP !== currentP) {
+                showToast("Password lama salah!", "error");
+                return;
+            }
+
+            if (!newP || newP.trim().length < 3) {
+                showToast("Password baru minimal 3 karakter.", "error");
+                return;
+            }
+
+            if (newP !== confirmP) {
+                showToast("Konfirmasi password baru tidak cocok.", "error");
+                return;
+            }
+
+            localStorage.setItem("RAB_BALI_PASSWORD", newP);
+            closeChangePassModal();
+            showToast("Password berhasil diperbarui!");
+        }
+
+        // FORGOT PASSWORD MODAL LOGIC
+        function openForgotPassModal() {
+            document.getElementById('input-reset-confirm').value = "";
+            document.getElementById('modal-forgot-pass').classList.remove('hidden');
+        }
+
+        function closeForgotPassModal() {
+            document.getElementById('modal-forgot-pass').classList.add('hidden');
+        }
+
+        function executePasswordReset() {
+            const val = document.getElementById('input-reset-confirm').value.trim().toUpperCase();
+            if (val !== 'RESET') {
+                showToast("Ketik kata 'RESET' dengan benar untuk mengonfirmasi.", "error");
+                return;
+            }
+
+            localStorage.removeItem("RAB_BALI_PASSWORD");
+            sessionStorage.removeItem("RAB_BALI_AUTH");
+            closeForgotPassModal();
+            initAuthSystem();
+            showToast("Password telah di-reset. Silakan buat password baru.");
+        }
+
+        function ensureOtherCategory() {
+            if (!Array.isArray(appState.categories)) appState.categories = [];
+            const exists = appState.categories.some(cat => cat.id === 'cat-lainnya');
+            if (!exists) {
+                appState.categories.push({
+                    id: 'cat-lainnya',
+                    name: 'Lain-lain / Keperluan Tambahan',
+                    icon: 'fa-ellipsis',
+                    items: []
+                });
+                localStorage.setItem('RAB_BALI_STATE', JSON.stringify(appState));
+            }
+        }
+
+        window.onload = function() {
+            ensureOtherCategory();
+            initAuthSystem();
+            renderApp();
+
+            if (scriptUrl) {
+                const input = document.getElementById('script-url-input');
+                if (input) input.value = scriptUrl;
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeCategoryModal();
+                    closeItemModal();
+                    closeWeddingInfoModal();
+                    closeAppsScriptModal();
+                    closeBudgetModal();
+                    closeChangePassModal();
+                    closeForgotPassModal();
+                }
+            });
+        };
+
+        function formatRp(num) {
+            return "Rp " + (Number(num) || 0).toLocaleString("id-ID");
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function saveState() {
+            localStorage.setItem("RAB_BALI_STATE", JSON.stringify(appState));
+            localStorage.setItem("RAB_BALI_LAST_SAVED", new Date().toISOString());
+            const indicator = document.getElementById("autosave-indicator");
+            if (indicator) {
+                indicator.className = "text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200";
+                indicator.innerHTML = '<i class="fa-solid fa-cloud-check mr-1"></i> Tersimpan lokal';
+            }
+            renderApp();
+        }
+
+        function renderCategorySummary() {
+            const grid = document.getElementById('category-summary-grid');
+            if (!grid) return;
+            const cats = Array.isArray(appState.categories) ? appState.categories : [];
+            if (!cats.length) {
+                grid.innerHTML = '<div class="col-span-full bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center text-xs text-slate-500">Belum ada kategori biaya.</div>';
+                return;
+            }
+            const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+            const status = document.getElementById('status-filter')?.value || 'ALL';
+            
+            grid.innerHTML = cats.map((cat) => {
+                const items = Array.isArray(cat.items) ? cat.items : [];
+                const total = items.reduce((sum,i)=>sum + ((Number(i.qty)||0)*(Number(i.priceAct)||0)),0);
+                const paid = items.reduce((sum,i)=>sum + (Number(i.paidAmount)||0),0);
+                const unpaid = Math.max(0,total-paid);
+                const count = items.filter(i => {
+                    const q = String(i.name||'').toLowerCase().includes(search) || String(i.notes||'').toLowerCase().includes(search);
+                    return q && (status==='ALL' || i.status===status);
+                }).length;
+                const icon = cat.icon || 'fa-folder';
+                const pct = total > 0 ? Math.min(100,(paid/total)*100) : 0;
+
+                return `<button type="button" onclick="focusCategory('${cat.id}')" class="category-summary-card text-left bg-white border border-slate-200 rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-md w-full">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 text-amber-700 border border-slate-200 shrink-0"><i class="fa-solid ${escapeHtml(icon)}"></i></div>
+                        <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full">${count} item</span>
+                    </div>
+                    <div class="mt-3 text-xs font-extrabold text-slate-800 leading-snug">${escapeHtml(cat.name)}</div>
+                    <div class="mt-2 font-mono text-sm font-extrabold text-slate-900">${formatRp(total)}</div>
+                    <div class="mt-2 flex justify-between text-[10px] font-semibold"><span class="text-emerald-600">Bayar ${formatRp(paid)}</span><span class="text-rose-600">Sisa ${formatRp(unpaid)}</span></div>
+                    <div class="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:${pct.toFixed(1)}%"></div></div>
+                </button>`;
+            }).join('');
+        }
+
+        function focusCategory(catId) {
+            const el = document.getElementById('category-' + catId);
+            if (el) {
+                el.scrollIntoView({behavior:'smooth', block:'start'});
+                el.classList.add('ring-2','ring-amber-400','ring-offset-2');
+                setTimeout(()=>el.classList.remove('ring-2','ring-amber-400','ring-offset-2'),1200);
+            }
+        }
+
+        function renderApp() {
+            document.getElementById('disp-title').innerText = appState.weddingInfo.title || "Pawiwahan Bali";
+            document.getElementById('disp-location').innerHTML = `<i class="fa-solid fa-map-pin text-rose-500 mr-1"></i> ${escapeHtml(appState.weddingInfo.location || '-')}`;
+            document.getElementById('disp-date').innerHTML = `<i class="fa-regular fa-calendar-check text-amber-600 mr-1"></i> ${escapeHtml(appState.weddingInfo.date || '-')}`;
+
+            renderCategorySummary();
+            const container = document.getElementById('categories-container');
+            container.innerHTML = "";
+
+            let grandEst = 0;
+            let grandAct = 0;
+            let grandPaid = 0;
+
+            const searchQuery = (document.getElementById('search-input')?.value || "").toLowerCase();
+            const statusFilter = document.getElementById('status-filter')?.value || "ALL";
+
+            if (!appState.categories || appState.categories.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-12 text-center border border-dashed border-slate-300 shadow-sm">
+                        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 mx-auto mb-3 text-xl font-bold">
+                            <i class="fa-solid fa-folder-plus"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">Tabel RAB Masih Kosong</h3>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">Tambahkan kategori biaya baru atau gunakan tombol di bawah untuk memuat template contoh.</p>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openCategoryModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">+ Kategori Baru</button>
+                            <button onclick="confirmLoadSample()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">Muat Contoh Data</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            appState.categories.forEach((cat) => {
+                let filteredItems = (cat.items || []).filter(item => {
+                    const name = (item.name || "").toLowerCase();
+                    const notes = (item.notes || "").toLowerCase();
+                    const matchQuery = name.includes(searchQuery) || notes.includes(searchQuery);
+                    const matchStatus = (statusFilter === "ALL") || (item.status === statusFilter);
+                    return matchQuery && matchStatus;
+                });
+
+                let catEst = 0;
+                let catAct = 0;
+                let catPaid = 0;
+
+                (cat.items || []).forEach(item => {
+                    catEst += (item.qty || 0) * (item.priceEst || 0);
+                    catAct += (item.qty || 0) * (item.priceAct || 0);
+                    catPaid += (item.paidAmount || 0);
+                });
+
+                grandEst += catEst;
+                grandAct += catAct;
+                grandPaid += catPaid;
+
+                const budget = appState.budget || 0;
+                const catPercent = budget > 0 ? ((catAct / budget) * 100).toFixed(1) : 0;
+
+                const catCard = document.createElement('div');
+                catCard.id = 'category-' + cat.id;
+                catCard.className = "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition hover:shadow-md scroll-mt-24";
+
+                let itemsRowsHtml = "";
+                if (filteredItems.length === 0) {
+                    itemsRowsHtml = `
+                        <tr>
+                            <td colspan="8" class="text-center py-7 px-4 bg-slate-50/40">
+                                <div class="text-slate-400 text-xs font-medium flex flex-col items-center justify-center gap-1">
+                                    <i class="fa-solid fa-inbox text-xl text-slate-300"></i>
+                                    <span>Belum ada item biaya pada kategori ini.</span>
+                                    <button onclick="openItemModal('${cat.id}')" class="mt-1 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-bold px-3 py-1 rounded-lg transition">
+                                        <i class="fa-solid fa-plus mr-1"></i> Tambah Item Baru
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    filteredItems.forEach((item, idx) => {
+                        const totEst = item.qty * item.priceEst;
+                        const totAct = item.qty * item.priceAct;
+
+                        let statusBadge = '';
+                        if (item.status === 'LUNAS') {
+                            statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-[9px]"></i> LUNAS</span>`;
+                        } else if (item.status === 'DP') {
+                            statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i> DP</span>`;
+                        } else {
+                            statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-[9px]"></i> BELUM</span>`;
+                        }
+
+                        const rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+
+                        itemsRowsHtml += `
+                            <tr class="${rowBg} table-row-hover border-b border-slate-100 transition text-xs">
+                                <td class="py-3 px-4 font-semibold text-slate-800 align-middle">
+                                    <div class="text-slate-900">${escapeHtml(item.name)}</div>
+                                    ${item.notes ? `<div class="text-[11px] font-normal text-slate-400 flex items-center gap-1 mt-0.5"><i class="fa-solid fa-note-sticky text-amber-500"></i> ${escapeHtml(item.notes)}</div>` : ''}
+                                </td>
+                                <td class="py-3 px-3 text-center font-medium text-slate-600 align-middle">
+                                    <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[11px] font-bold">${item.qty} ${escapeHtml(item.unit)}</span>
+                                </td>
+                                <td class="py-3 px-3 text-right text-slate-500 align-middle font-mono text-[11px]">${formatRp(item.priceEst)}</td>
+                                <td class="py-3 px-3 text-right font-semibold text-slate-800 align-middle font-mono">${formatRp(totEst)}</td>
+                                <td class="py-3 px-3 text-right font-bold text-blue-700 align-middle font-mono">${formatRp(totAct)}</td>
+                                <td class="py-3 px-3 text-right font-semibold text-emerald-600 align-middle font-mono">${formatRp(item.paidAmount)}</td>
+                                <td class="py-3 px-3 text-center align-middle">${statusBadge}</td>
+                                <td class="py-3 px-3 text-center align-middle no-print">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button onclick="editItem('${cat.id}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Edit Item">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <button onclick="deleteItem('${cat.id}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Item">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                catCard.innerHTML = `
+                    <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-4 text-white flex flex-wrap justify-between items-center gap-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold">
+                                <i class="fa-solid ${cat.icon || 'fa-folder'}"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold text-amber-100 tracking-wide">${escapeHtml(cat.name)}</h3>
+                                    <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-400/30">
+                                        Memotong Modal: ${catPercent}%
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 font-mono mt-0.5">
+                                    Est: <span class="text-amber-200 font-semibold">${formatRp(catEst)}</span> | 
+                                    Riil: <span class="text-blue-300 font-semibold">${formatRp(catAct)}</span> | 
+                                    Terbayar: <span class="text-emerald-300 font-semibold">${formatRp(catPaid)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 no-print">
+                            <button onclick="openItemModal('${cat.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> Item
+                            </button>
+                            <button onclick="editCategory('${cat.id}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs px-2.5 py-1.5 rounded-lg transition" title="Edit Kategori">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteCategory('${cat.id}')" class="bg-slate-800 hover:bg-rose-900/50 text-rose-300 border border-slate-700 hover:border-rose-800 text-xs px-2.5 py-1.5 rounded-lg transition" title="Hapus Kategori">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-slate-800 h-1">
+                        <div class="bg-gradient-to-r from-amber-400 to-amber-500 h-1 transition-all duration-300" style="width: ${Math.min(catPercent, 100)}%"></div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 text-slate-500 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-200">
+                                    <th class="py-2.5 px-4">Item Kebutuhan</th>
+                                    <th class="py-2.5 px-3 text-center">Volume</th>
+                                    <th class="py-2.5 px-3 text-right">Harga Est.</th>
+                                    <th class="py-2.5 px-3 text-right">Tot. Est</th>
+                                    <th class="py-2.5 px-3 text-right">Tot. Riil</th>
+                                    <th class="py-2.5 px-3 text-right">Terbayar</th>
+                                    <th class="py-2.5 px-3 text-center">Status</th>
+                                    <th class="py-2.5 px-3 text-center no-print">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${itemsRowsHtml}
+                            </tbody>
+                            <tfoot class="bg-slate-50/80 border-t border-slate-200 text-xs font-bold text-slate-700">
+                                <tr>
+                                    <td colspan="3" class="py-2.5 px-4 text-slate-500 uppercase tracking-wider text-[10px]">Subtotal ${escapeHtml(cat.name)}</td>
+                                    <td class="py-2.5 px-3 text-right font-mono text-slate-800">${formatRp(catEst)}</td>
+                                    <td class="py-2.5 px-3 text-right font-mono text-blue-700">${formatRp(catAct)}</td>
+                                    <td class="py-2.5 px-3 text-right font-mono text-emerald-600">${formatRp(catPaid)}</td>
+                                    <td colspan="2" class="py-2.5 px-3 text-center text-slate-400 font-normal text-[11px]">${cat.items?.length || 0} Item</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                container.appendChild(catCard);
+            });
+
+            // Financial Summaries Calculation
+            const budget = appState.budget || 0;
+            const remainingBalanceNet = budget - grandAct;
+            const remainingBalanceCash = budget - grandPaid;
+            const unpaidTotal = grandAct - grandPaid;
+
+            if (document.getElementById('sum-budget')) document.getElementById('sum-budget').innerText = formatRp(budget);
+            if (document.getElementById('sum-estimated')) document.getElementById('sum-estimated').innerText = formatRp(grandEst);
+            if (document.getElementById('sum-actual')) document.getElementById('sum-actual').innerText = formatRp(grandAct);
+            if (document.getElementById('sum-paid')) document.getElementById('sum-paid').innerText = formatRp(grandPaid);
+            if (document.getElementById('sum-unpaid-sub')) document.getElementById('sum-unpaid-sub').innerText = `Sisa Tagihan: ${formatRp(unpaidTotal > 0 ? unpaidTotal : 0)}`;
+
+            const remainingCashElem = document.getElementById('sum-remaining-cash');
+            const subRemainingCashElem = document.getElementById('sub-remaining-cash');
+            const cardRemainingCash = document.getElementById('card-remaining-cash');
+            
+            remainingCashElem.innerText = formatRp(remainingBalanceCash);
+            if (remainingBalanceCash >= 0) {
+                remainingCashElem.className = "text-2xl font-black text-emerald-600 mt-1";
+                subRemainingCashElem.className = "text-xs font-semibold mt-1 text-emerald-600";
+                subRemainingCashElem.innerText = "Uang Kas Masih Tersedia";
+                cardRemainingCash.className = "bg-white rounded-2xl p-5 border border-emerald-200 shadow-sm relative overflow-hidden transition";
+            } else {
+                remainingCashElem.className = "text-2xl font-black text-rose-600 mt-1";
+                subRemainingCashElem.className = "text-xs font-semibold mt-1 text-rose-600";
+                subRemainingCashElem.innerText = `Kas Defisit: -${formatRp(Math.abs(remainingBalanceCash))}`;
+                cardRemainingCash.className = "bg-rose-50/50 rounded-2xl p-5 border border-rose-200 shadow-sm relative overflow-hidden transition";
+            }
+
+            const remainingElem = document.getElementById('sum-remaining');
+            const subRemainingElem = document.getElementById('sub-remaining');
+            const cardRemaining = document.getElementById('card-remaining-balance');
+
+            remainingElem.innerText = formatRp(remainingBalanceNet);
+
+            if (remainingBalanceNet >= 0) {
+                remainingElem.className = "text-2xl font-black text-indigo-600 mt-1";
+                subRemainingElem.className = "text-xs font-semibold mt-1 text-indigo-600";
+                subRemainingElem.innerText = "Sisa Saldo Aman (Surplus)";
+                cardRemaining.className = "bg-white rounded-2xl p-5 border border-indigo-200 shadow-sm relative overflow-hidden transition";
+            } else {
+                remainingElem.className = "text-2xl font-black text-rose-600 mt-1";
+                subRemainingElem.className = "text-xs font-semibold mt-1 text-rose-600";
+                subRemainingElem.innerText = `Defisit Akhir: -${formatRp(Math.abs(remainingBalanceNet))}`;
+                cardRemaining.className = "bg-rose-50/50 rounded-2xl p-5 border border-rose-200 shadow-sm relative overflow-hidden transition";
+            }
+
+            const variance = grandEst - grandAct;
+            const varElem = document.getElementById('sum-variance');
+            if (variance >= 0) {
+                varElem.className = "text-xs font-semibold mt-1 text-emerald-600";
+                varElem.innerText = `Hemat Est: +${formatRp(variance)}`;
+            } else {
+                varElem.className = "text-xs font-semibold mt-1 text-rose-600";
+                varElem.innerText = `Over Est: -${formatRp(Math.abs(variance))}`;
+            }
+
+            updateAdvancedDashboard();
+        }
+
+        function updateAdvancedDashboard() {
+            const allItems = [];
+            (appState.categories || []).forEach(cat => {
+                (cat.items || []).forEach(item => {
+                    const actual = (item.qty || 0) * (item.priceAct || 0);
+                    const estimated = (item.qty || 0) * (item.priceEst || 0);
+                    const paid = item.paidAmount || 0;
+                    allItems.push({
+                        ...item, categoryName: cat.name,
+                        actual, estimated, paid,
+                        unpaid: Math.max(0, actual - paid)
+                    });
+                });
+            });
+
+            const budget = Number(appState.budget || 0);
+            const totalActual = allItems.reduce((n,i)=>n+i.actual,0);
+            const totalEstimated = allItems.reduce((n,i)=>n+i.estimated,0);
+            const totalPaid = allItems.reduce((n,i)=>n+i.paid,0);
+            const unpaid = allItems.reduce((n,i)=>n+i.unpaid,0);
+            const saving = totalEstimated - totalActual;
+            const budgetPct = budget > 0 ? (totalActual / budget) * 100 : 0;
+            const paymentPct = totalActual > 0 ? Math.min(100, (totalPaid / totalActual) * 100) : 0;
+
+            const setText = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
+            setText("adv-budget-percent", `${budgetPct.toFixed(1)}%`);
+            setText("adv-unpaid", formatRp(unpaid));
+            setText("adv-unpaid-items", `${allItems.filter(i=>i.unpaid>0).length} item belum lunas`);
+            setText("adv-saving", saving >= 0 ? `+${formatRp(saving)}` : `-${formatRp(Math.abs(saving))}`);
+            setText("adv-saving-label", saving >= 0 ? "hemat vs estimasi" : "melebihi estimasi");
+            setText("adv-paid", formatRp(totalPaid));
+            setText("adv-bill", formatRp(unpaid));
+            setText("adv-paid-items", `${allItems.filter(i=>i.unpaid===0 && i.actual>0).length} item`);
+            setText("payment-percent", `${paymentPct.toFixed(0)}%`);
+            setText("open-items-count", `${allItems.filter(i=>i.unpaid>0).length} item`);
+            setText("category-count", `${(appState.categories || []).length} kategori`);
+
+            const prog = document.getElementById("adv-budget-progress");
+            if (prog) {
+                prog.style.width = `${Math.min(100, Math.max(0,budgetPct))}%`;
+                prog.className = "progress-fill " + (budgetPct > 100 ? "bg-rose-500" : budgetPct >= 85 ? "bg-orange-500" : "bg-amber-500");
+            }
+
+            const health = document.getElementById("adv-health");
+            const healthLabel = document.getElementById("adv-health-label");
+            if (health) {
+                if (budget <= 0 && totalActual > 0) {
+                    health.textContent = "SET BUDGET";
+                    health.className = "text-xl font-black text-amber-500 mt-1";
+                    healthLabel.textContent = "Modal awal belum diset";
+                } else if (budgetPct > 100) {
+                    health.textContent = "DEFISIT";
+                    health.className = "text-xl font-black text-rose-600 mt-1";
+                    healthLabel.textContent = `Melebihi modal ${formatRp(totalActual-budget)}`;
+                } else if (budgetPct >= 85) {
+                    health.textContent = "WASPADA";
+                    health.className = "text-xl font-black text-orange-500 mt-1";
+                    healthLabel.textContent = "Anggaran mendekati batas";
+                } else {
+                    health.textContent = "AMAN";
+                    health.className = "text-xl font-black text-emerald-600 mt-1";
+                    healthLabel.textContent = "Dalam batas anggaran";
+                }
+            }
+
+            const ring = document.getElementById("payment-ring");
+            if (ring) ring.style.background = `conic-gradient(#10b981 ${paymentPct*3.6}deg, #334155 ${paymentPct*3.6}deg)`;
+
+            const priority = document.getElementById("priority-list");
+            if (priority) {
+                const open = allItems.filter(i=>i.unpaid>0).sort((a,b)=>b.unpaid-a.unpaid).slice(0,5);
+                priority.innerHTML = open.length ? open.map(i => `
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-700 truncate">${escapeHtml(i.name)}</div>
+                            <div class="text-[10px] text-slate-400 truncate">${escapeHtml(i.categoryName)}</div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-xs font-black text-rose-600">${formatRp(i.unpaid)}</div>
+                            <div class="text-[9px] text-slate-400">belum dibayar</div>
+                        </div>
+                    </div>`).join("") : '<div class="empty-small"><i class="fa-solid fa-circle-check text-emerald-500 text-lg mb-1"></i><br>Semua tagihan sudah lunas.</div>';
+            }
+
+            const breakdown = document.getElementById("category-breakdown");
+            if (breakdown) {
+                const cats = (appState.categories || []).map(c => {
+                    const total = (c.items||[]).reduce((n,i)=>n+(i.qty||0)*(i.priceAct||0),0);
+                    return {name:c.name,total};
+                }).sort((a,b)=>b.total-a.total);
+                breakdown.innerHTML = cats.length ? cats.slice(0,6).map(c => {
+                    const pct = totalActual > 0 ? (c.total/totalActual)*100 : 0;
+                    return `<div>
+                        <div class="flex justify-between gap-2 text-[11px] mb-1"><span class="font-semibold text-slate-700 truncate">${escapeHtml(c.name)}</span><b class="text-slate-600">${formatRp(c.total)}</b></div>
+                        <div class="progress-track"><div class="progress-fill bg-slate-800" style="width:${Math.min(100,pct)}%"></div></div>
+                    </div>`;
+                }).join("") : '<div class="empty-small">Belum ada data kategori.</div>';
+            }
+        }
+
+        function openBudgetModal() {
+            document.getElementById('input-budget-val').value = appState.budget || 0;
+            document.getElementById('modal-budget').classList.remove('hidden');
+        }
+
+        function closeBudgetModal() {
+            document.getElementById('modal-budget').classList.add('hidden');
+        }
+
+        function setQuickBudget(amount) {
+            document.getElementById('input-budget-val').value = amount;
+        }
+
+        function saveBudget(e) {
+            e.preventDefault();
+            const val = parseFloat(document.getElementById('input-budget-val').value) || 0;
+            appState.budget = val;
+            saveState();
+            closeBudgetModal();
+            showToast("Modal Awal Pernikahan diperbarui!");
+        }
+
+        function openCategoryModal(catId = null) {
+            document.getElementById('cat-id').value = catId || "";
+            if (catId) {
+                const cat = appState.categories.find(c => c.id === catId);
+                if (cat) {
+                    document.getElementById('cat-name').value = cat.name;
+                    document.getElementById('cat-icon').value = cat.icon || "fa-hands-praying";
+                    document.getElementById('modal-cat-title').innerText = "Edit Kategori Biaya";
+                }
+            } else {
+                document.getElementById('cat-name').value = "";
+                document.getElementById('modal-cat-title').innerText = "Tambah Kategori Baru";
+            }
+            updateCatIconPreview();
+            document.getElementById('modal-category').classList.remove('hidden');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('modal-category').classList.add('hidden');
+        }
+
+        function updateCatIconPreview() {
+            const iconVal = document.getElementById('cat-icon').value;
+            const previewElem = document.getElementById('cat-icon-preview-i');
+            if (previewElem) previewElem.className = `fa-solid ${iconVal}`;
+        }
+
+        function saveCategory(e) {
+            e.preventDefault();
+            const id = document.getElementById('cat-id').value;
+            const name = document.getElementById('cat-name').value;
+            const icon = document.getElementById('cat-icon').value;
+
+            if (id) {
+                const cat = appState.categories.find(c => c.id === id);
+                if (cat) {
+                    cat.name = name;
+                    cat.icon = icon;
+                }
+            } else {
+                const newCat = {
+                    id: 'cat-' + Date.now(),
+                    name: name,
+                    icon: icon,
+                    items: []
+                };
+                appState.categories.push(newCat);
+            }
+
+            saveState();
+            closeCategoryModal();
+            showToast("Kategori berhasil disimpan!");
+        }
+
+        function editCategory(catId) {
+            openCategoryModal(catId);
+        }
+
+        function deleteCategory(catId) {
+            openConfirmModal("Hapus Kategori", "Apakah Anda yakin ingin menghapus kategori ini beserta seluruh item di dalamnya?", function() {
+                appState.categories = appState.categories.filter(c => c.id !== catId);
+                saveState();
+                showToast("Kategori berhasil dihapus.", "info");
+            });
+        }
+
+        function openItemModal(catId = null, itemId = null) {
+            const select = document.getElementById('item-category-select');
+            select.innerHTML = (appState.categories || []).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+            document.getElementById('item-id').value = itemId || "";
+            document.getElementById('item-cat-id').value = catId || "";
+
+            if (catId) select.value = catId;
+
+            if (itemId) {
+                let targetItem = null;
+                (appState.categories || []).forEach(c => {
+                    const found = (c.items || []).find(i => i.id === itemId);
+                    if (found) targetItem = found;
+                });
+
+                if (targetItem) {
+                    document.getElementById('item-name').value = targetItem.name || "";
+                    document.getElementById('item-qty').value = targetItem.qty || 1;
+                    document.getElementById('item-unit').value = targetItem.unit || "";
+                    document.getElementById('item-price-est').value = targetItem.priceEst || 0;
+                    document.getElementById('item-price-act').value = targetItem.priceAct || 0;
+                    document.getElementById('item-status').value = targetItem.status || "BELUM";
+                    document.getElementById('item-paid').value = targetItem.paidAmount || 0;
+                    document.getElementById('item-notes').value = targetItem.notes || "";
+                    document.getElementById('modal-item-title').innerText = "Edit Item Biaya";
+                }
+            } else {
+                document.getElementById('item-name').value = "";
+                document.getElementById('item-qty').value = 1;
+                document.getElementById('item-unit').value = "Paket";
+                document.getElementById('item-price-est').value = 0;
+                document.getElementById('item-price-act').value = 0;
+                document.getElementById('item-status').value = "BELUM";
+                document.getElementById('item-paid').value = 0;
+                document.getElementById('item-notes').value = "";
+                document.getElementById('modal-item-title').innerText = "Tambah Item Biaya Baru";
+            }
+
+            calcModalTotals();
+            document.getElementById('modal-item').classList.remove('hidden');
+        }
+
+        function closeItemModal() {
+            document.getElementById('modal-item').classList.add('hidden');
+        }
+
+        function calcModalTotals() {
+            const qty = parseFloat(document.getElementById('item-qty').value) || 0;
+            const priceEst = parseFloat(document.getElementById('item-price-est').value) || 0;
+            const priceAct = parseFloat(document.getElementById('item-price-act').value) || 0;
+
+            const totEst = qty * priceEst;
+            const totAct = qty * priceAct;
+            const diff = totEst - totAct;
+
+            document.getElementById('prev-est').innerText = formatRp(totEst);
+            document.getElementById('prev-act').innerText = formatRp(totAct);
+
+            const diffElem = document.getElementById('prev-diff');
+            if (diff >= 0) {
+                diffElem.className = "font-bold text-emerald-600 font-mono";
+                diffElem.innerText = "+" + formatRp(diff);
+            } else {
+                diffElem.className = "font-bold text-rose-600 font-mono";
+                diffElem.innerText = "-" + formatRp(Math.abs(diff));
+            }
+        }
+
+        function autoFillPaymentStatus() {
+            const status = document.getElementById('item-status').value;
+            const qty = parseFloat(document.getElementById('item-qty').value) || 0;
+            const priceAct = parseFloat(document.getElementById('item-price-act').value) || 0;
+            const totAct = qty * priceAct;
+
+            if (status === 'LUNAS') {
+                document.getElementById('item-paid').value = totAct;
+            } else if (status === 'BELUM') {
+                document.getElementById('item-paid').value = 0;
+            }
+        }
+
+        function setQuickPayment(type) {
+            const qty = parseFloat(document.getElementById('item-qty').value) || 0;
+            const priceAct = parseFloat(document.getElementById('item-price-act').value) || 0;
+            const totAct = qty * priceAct;
+
+            if (type === 'LUNAS') {
+                document.getElementById('item-status').value = 'LUNAS';
+                document.getElementById('item-paid').value = totAct;
+            } else if (type === 'DP50') {
+                document.getElementById('item-status').value = 'DP';
+                document.getElementById('item-paid').value = Math.round(totAct * 0.5);
+            } else if (type === 'BELUM') {
+                document.getElementById('item-status').value = 'BELUM';
+                document.getElementById('item-paid').value = 0;
+            }
+        }
+
+        function saveItem(e) {
+            e.preventDefault();
+            const itemId = document.getElementById('item-id').value;
+            const catId = document.getElementById('item-category-select').value;
+
+            const itemObj = {
+                id: itemId || ('item-' + Date.now()),
+                name: document.getElementById('item-name').value,
+                qty: parseFloat(document.getElementById('item-qty').value) || 0,
+                unit: document.getElementById('item-unit').value,
+                priceEst: parseFloat(document.getElementById('item-price-est').value) || 0,
+                priceAct: parseFloat(document.getElementById('item-price-act').value) || 0,
+                status: document.getElementById('item-status').value,
+                paidAmount: parseFloat(document.getElementById('item-paid').value) || 0,
+                notes: document.getElementById('item-notes').value
+            };
+
+            // Remove item from previous category if edited & moved
+            (appState.categories || []).forEach(c => {
+                c.items = (c.items || []).filter(i => i.id !== itemObj.id);
+            });
+
+            const targetCat = (appState.categories || []).find(c => c.id === catId);
+            if (targetCat) {
+                if (!targetCat.items) targetCat.items = [];
+                targetCat.items.push(itemObj);
+            }
+
+            saveState();
+            closeItemModal();
+            showToast("Item biaya berhasil disimpan!");
+        }
+
+        function editItem(catId, itemId) {
+            openItemModal(catId, itemId);
+        }
+
+        function deleteItem(catId, itemId) {
+            openConfirmModal("Hapus Item Biaya", "Apakah Anda yakin ingin menghapus item biaya ini?", function() {
+                const cat = (appState.categories || []).find(c => c.id === catId);
+                if (cat) {
+                    cat.items = (cat.items || []).filter(i => i.id !== itemId);
+                    saveState();
+                    showToast("Item berhasil dihapus.", "info");
+                }
+            });
+        }
+
+        function openWeddingInfoModal() {
+            document.getElementById('info-title').value = appState.weddingInfo.title || "";
+            document.getElementById('info-location').value = appState.weddingInfo.location || "";
+            document.getElementById('info-date').value = appState.weddingInfo.date || "";
+            document.getElementById('modal-wedding-info').classList.remove('hidden');
+        }
+
+        function closeWeddingInfoModal() {
+            document.getElementById('modal-wedding-info').classList.add('hidden');
+        }
+
+        function saveWeddingInfo(e) {
+            e.preventDefault();
+            appState.weddingInfo = {
+                title: document.getElementById('info-title').value,
+                location: document.getElementById('info-location').value,
+                date: document.getElementById('info-date').value
+            };
+            saveState();
+            closeWeddingInfoModal();
+            showToast("Informasi Pawiwahan diperbarui!");
+        }
+
+        function filterItems() {
+            renderApp();
+        }
+
+        function confirmLoadSample() {
+            openConfirmModal("Muat Template Jembrana", "Tindakan ini akan mengganti data saat ini dengan template data contoh pernikahan Adat Bali Jembrana. Lanjutkan?", function() {
+                appState = JSON.parse(JSON.stringify(PRESET_SAMPLE_DATA));
+                saveState();
+                showToast("Template contoh berhasil dimuat!");
+            });
+        }
+
+        function confirmClearAll() {
+            openConfirmModal("Kosongkan Semua Data", "Apakah Anda yakin ingin mengosongkan seluruh data RAB?", function() {
+                appState = JSON.parse(JSON.stringify(EMPTY_BALI_TEMPLATE));
+                saveState();
+                showToast("Semua data telah dikosongkan.", "info");
+            });
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `RAB_Pawiwahan_Bali_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Data RAB berhasil diekspor!");
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.categories) {
+                        appState = parsed;
+                        saveState();
+                        showToast("Data RAB berhasil diimpor!");
+                    } else {
+                        showToast("Format file JSON tidak valid.", "error");
+                    }
+                } catch (err) {
+                    showToast("Gagal membaca file JSON.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function openConfirmModal(title, msg, onConfirm) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            pendingConfirmCallback = onConfirm;
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        function closeConfirmModal(confirmed) {
+            document.getElementById('modal-confirm').classList.add('hidden');
+            if (confirmed && typeof pendingConfirmCallback === 'function') {
+                pendingConfirmCallback();
+            }
+            pendingConfirmCallback = null;
+        }
+
+        function showToast(msg, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-emerald-600 text-white";
+            let icon = "fa-circle-check";
+
+            if (type === "error") {
+                bgClass = "bg-rose-600 text-white";
+                icon = "fa-circle-xmark";
+            } else if (type === "info") {
+                bgClass = "bg-slate-800 text-white";
+                icon = "fa-circle-info";
+            }
+
+            toast.className = `${bgClass} px-4 py-3 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2 pointer-events-auto transition duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${escapeHtml(msg)}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // GOOGLE APPS SCRIPT INTEGRATION
+        function openAppsScriptModal() {
+            document.getElementById('modal-apps-script').classList.remove('hidden');
+        }
+
+        function closeAppsScriptModal() {
+            document.getElementById('modal-apps-script').classList.add('hidden');
+        }
+
+        function saveScriptUrl() {
+            const url = document.getElementById('script-url-input').value.trim();
+            scriptUrl = url;
+            localStorage.setItem("RAB_BALI_SCRIPT_URL", scriptUrl);
+            showToast("URL Google Script disimpan!");
+        }
+
+        function syncToGoogleSheets() {
+            if (!scriptUrl) {
+                showToast("Masukkan URL Google Script terlebih dahulu.", "error");
+                return;
+            }
+            showToast("Mengirim data ke Google Sheets...", "info");
+            fetch(scriptUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(appState)
+            })
+            .then(() => {
+                showToast("Data dikirim ke Google Sheets!");
+            })
+            .catch(err => {
+                showToast("Gagal sinkronisasi: " + err.message, "error");
+            });
+        }
+
+        function syncFromGoogleSheets() {
+            if (!scriptUrl) {
+                showToast("Masukkan URL Google Script terlebih dahulu.", "error");
+                return;
+            }
+            showToast("Mengambil data dari Google Sheets...", "info");
+            fetch(scriptUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.categories) {
+                    appState = data;
+                    saveState();
+                    showToast("Data berhasil diambil dari Google Sheets!");
+                } else {
+                    showToast("Respon data dari Google Sheets tidak sesuai.", "error");
+                }
+            })
+            .catch(err => {
+                showToast("Gagal mengambil data: " + err.message, "error");
+            });
+        }
+
+        function copyAppsScriptCode() {
+            const code = document.getElementById('gs-code-content').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast("Kode Google Apps Script berhasil disalin!");
+            });
+        }
+    </script>
+</body>
+</html>
